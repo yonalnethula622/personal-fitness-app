@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101410">
+<meta name="description" content="Personal workout assistant for Nuwan">
+<title>Personal Fitness App</title>
+
+<style>
+:root {
+    --bg: #101410;
+    --card: #1c241d;
+    --card2: #263229;
+    --green: #a5ef72;
+    --text: #f7faf5;
+    --muted: #a7b2a6;
+    --border: #303b31;
+    --red: #ff7777;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    margin: auto;
+    padding-bottom: 94px;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+.logo { font-weight: 900; letter-spacing: 1px; font-size: 15px; }
+.logo span { color: var(--green); }
+.avatar {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: var(--green);
+    background: var(--card2);
+    font-weight: bold;
+}
+main { padding: 23px 18px; }
+.muted { color: var(--muted); }
+.eyebrow {
+    color: var(--green);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+h1 { font-size: 29px; line-height: 1.2; margin: 10px 0; }
+h2 { font-size: 20px; margin: 0 0 14px; }
+h3 { font-size: 17px; margin: 0 0 8px; }
+p { line-height: 1.55; }
+.screen { display: none; }
+.screen.active { display: block; }
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    padding: 18px;
+    margin-top: 16px;
+}
+.hero {
+    padding: 24px 20px;
+    border-radius: 20px;
+    background: linear-gradient(145deg, #29432b, #18231a);
+    border: 1px solid #405c40;
+    margin-top: 22px;
+}
+.hero h2 { font-size: 24px; margin-top: 12px; }
+.primary, .secondary, .danger {
+    border: 0;
+    border-radius: 12px;
+    padding: 15px 16px;
+    font-weight: bold;
+    min-height: 48px;
+}
+.primary { background: var(--green); color: #142014; }
+.secondary { background: var(--card2); color: var(--text); }
+.danger { background: #482525; color: #ffdede; }
+.full { width: 100%; margin-top: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 14px;
+    min-width: 0;
+}
+.stat .value { color: var(--green); font-size: 25px; font-weight: bold; margin-top: 8px; }
+.stat .label { font-size: 12px; color: var(--muted); }
+.section-heading { margin: 27px 0 12px; }
+.day-row, .history-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border);
+}
+.day-row:last-child, .history-row:last-child { border-bottom: 0; }
+.day-name { font-weight: bold; font-size: 14px; }
+.day-detail { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.pill {
+    background: var(--card2);
+    color: var(--green);
+    padding: 7px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.profile-line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.profile-line:last-child { border: 0; }
+.profile-line span:first-child { color: var(--muted); }
+.profile-line span:last-child { text-align: right; }
+
+/* Workout screen */
+.workout-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.text-button { color: var(--muted); background: transparent; border: 0; padding: 8px 0; }
+.progress-track { height: 7px; background: var(--card2); border-radius: 10px; overflow: hidden; margin: 12px 0 22px; }
+.progress-fill { height: 100%; width: 0; background: var(--green); transition: width .2s; }
+.exercise-visual {
+    width: 100%;
+    height: 225px;
+    border-radius: 17px;
+    background: var(--card2);
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+.exercise-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #202a21;
+}
+.exercise-visual .visual-fallback {
+    font-size: 72px;
+    text-align: center;
+}
+.exercise-visual .visual-fallback small {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0 12px;
+}
+
+.session-clock-card {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; margin: 14px 0 18px;
+}
+.session-clock-card div { display: flex; flex-direction: column; gap: 5px; }
+.session-clock-card div:last-child { text-align: right; }
+.session-clock-label { color: var(--muted); font-size: 10px; letter-spacing: 1px; }
+.session-clock-card strong { color: var(--green); font-size: 20px; font-variant-numeric: tabular-nums; }
+
+.exercise-title { text-align: center; font-size: 23px; margin: 20px 0 8px; }
+.exercise-desc { color: var(--muted); text-align: center; font-size: 13px; min-height: 40px; }
+.timer {
+    font-size: 66px;
+    text-align: center;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--green);
+    margin: 19px 0;
+}
+.timer-label { text-align: center; color: var(--muted); font-size: 11px; letter-spacing: 2px; }
+.exercise-meta { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.meta-chip { background: var(--card2); border-radius: 9px; padding: 9px 11px; font-size: 12px; }
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.controls .primary { grid-column: 1 / -1; }
+.next-info { text-align: center; color: var(--muted); font-size: 12px; margin-top: 16px; }
+.notice { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.field { display: block; margin-top: 15px; }
+.field label { display: block; color: var(--muted); font-size: 13px; margin-bottom: 7px; }
+.field select, .field input {
+    width: 100%;
+    color: var(--text);
+    background: var(--card2);
+    border: 1px solid var(--border);
+    padding: 13px;
+    border-radius: 10px;
+}
+.empty { color: var(--muted); text-align: center; padding: 22px 5px; line-height: 1.6; }
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
+    background: #19201a;
+    border-top: 1px solid var(--border);
+    z-index: 5;
+}
+.nav-btn {
+    background: transparent;
+    color: var(--muted);
+    border: 0;
+    min-height: 53px;
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+    gap: 3px;
+}
+.nav-btn .icon { font-size: 20px; }
+.nav-btn.active { color: var(--green); }
+.toast {
+    position: fixed;
+    bottom: 92px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 90%;
+    background: #303b31;
+    color: white;
+    border: 1px solid #526653;
+    border-radius: 12px;
+    padding: 12px 16px;
+    z-index: 20;
+    font-size: 13px;
+}
+.hidden { display: none !important; }
+@media (max-width: 360px) {
+    main { padding: 19px 14px; }
+    h1 { font-size: 26px; }
+    .timer { font-size: 57px; }
+    .exercise-visual { height: 195px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<header>
+    <div class="logo">PERSONAL <span>FITNESS</span></div>
+    <div class="avatar" aria-label="Nuwan">N</div>
+</header>
+
+<main>
+    <!-- HOME -->
+    <section id="homeScreen" class="screen active">
+        <div class="eyebrow">YOUR PERSONAL FITNESS SPACE</div>
+        <h1>Hi, Nuwan! 👋</h1>
+        <p class="muted">Your workout. Your pace. Your progress.</p>
+
+        <div class="hero">
+            <div class="eyebrow">YOUR DAILY SESSION</div>
+            <h2>Ready to get moving?</h2>
+            <p class="muted">A complete 60-minute guided session, including warm-up, strength work, easy movement and cool-down.</p>
+            <button class="primary full" id="homeStart">START WORKOUT →</button>
+        </div>
+
+        <div class="section-heading"><h2>Your activity</h2></div>
+        <div class="grid2">
+            <div class="stat">
+                <div class="label">WORKOUTS COMPLETED</div>
+                <div class="value" id="homeWorkouts">0</div>
+            </div>
+            <div class="stat">
+                <div class="label">TOTAL TIME</div>
+                <div class="value" id="homeMinutes">0 min</div>
+            </div>
+        </div>
+
+        <div class="section-heading"><h2>This week's plan</h2></div>
+        <div class="card" id="weeklyPlan"></div>
+
+        <div class="section-heading"><h2>Your profile</h2></div>
+        <div class="card">
+            <div class="profile-line"><span>Name</span><span>Nuwan</span></div>
+            <div class="profile-line"><span>Birth year</span><span>1987</span></div>
+            <div class="profile-line"><span>Fitness level</span><span>Intermediate</span></div>
+            <div class="profile-line"><span>Goal</span><span>Fitness + strength</span></div>
+            <div class="profile-line"><span>Equipment</span><span>Dumbbells + adjustable bench</span></div>
+        </div>
+    </section>
+
+    <!-- WORKOUT -->
+    <section id="workoutScreen" class="screen">
+        <div class="workout-top">
+            <button class="text-button" id="workoutBack">← Home</button>
+            <span class="pill" id="workoutDayLabel">FULL BODY</span>
+        </div>
+
+        <div id="workoutIntro">
+            <div class="eyebrow">TODAY'S SESSION</div>
+            <h1 id="workoutHeading">Full Body Workout</h1>
+            <p class="muted">Move at a controlled pace. Use a comfortable weight and stop if you feel pain, dizziness or unusual shortness of breath.</p>
+            <div class="card">
+                <div class="profile-line"><span>Exercises</span><span id="introCount">8</span></div>
+                <div class="profile-line"><span>Estimated duration</span><span id="introDuration">60 minutes</span></div>
+                <div class="profile-line"><span>Equipment</span><span>Dumbbells / bench / bodyweight</span></div>
+            </div>
+            <p class="notice" style="margin-top:15px">This is a 60-minute guided session. Each timed block gives you time to complete the listed sets, repetitions and rests. The countdown is a guide, not a race. Pause it whenever you need extra time.</p>
+            <button class="primary full" id="beginSession">BEGIN SESSION</button>
+        </div>
+
+        <div id="liveWorkout" class="hidden">
+            <div class="session-clock-card">
+                <div><span class="session-clock-label">SESSION ELAPSED</span><strong id="sessionElapsed">00:00</strong></div>
+                <div><span class="session-clock-label">TIME LEFT</span><strong id="sessionRemaining">60:00</strong></div>
+            </div>
+            <div class="muted" id="exerciseCounter">WORKOUT BLOCK 1 OF 9</div>
+            <div class="progress-track"><div class="progress-fill" id="exerciseProgress"></div></div>
+
+            <div class="exercise-visual" id="exerciseVisual">
+                <div class="visual-fallback">🏋️<small>Exercise demonstration</small></div>
+            </div>
+            <div class="exercise-title" id="exerciseName">Warm-up</div>
+            <div class="exercise-desc" id="exerciseDescription"></div>
+            <div class="exercise-meta">
+                <span class="meta-chip" id="exerciseSets">Set 1 of 2</span>
+                <span class="meta-chip" id="exerciseReps">8–12 reps</span>
+            </div>
+            <div class="timer-label" id="timerLabel">BLOCK TIME REMAINING</div>
+            <div class="timer" id="timerDisplay" aria-live="off">00:45</div>
+            <div class="progress-track"><div class="progress-fill" id="timeProgress"></div></div>
+
+            <div class="controls">
+                <button class="secondary" id="pauseBtn">Ⅱ PAUSE</button>
+                <button class="secondary" id="skipBtn">SKIP →</button>
+                <button class="primary" id="resumeBtn" style="display:none">RESUME</button>
+            </div>
+            <div class="next-info" id="nextExerciseInfo">Next: Rest</div>
+            <button class="text-button full" id="endWorkout">End workout</button>
+            <p class="notice" style="margin-top:12px">Keep your phone nearby. Some phones may pause timers or voice alerts when the browser is closed or the device is locked.</p>
+        </div>
+
+        <div id="workoutComplete" class="card hidden">
+            <div style="font-size:48px;text-align:center">✅</div>
+            <h2 style="text-align:center;margin-top:14px">Session complete!</h2>
+            <p class="muted" style="text-align:center" id="completeSummary">Well done, Nuwan.</p>
+            <button class="primary full" id="finishToHome">BACK TO HOME</button>
+        </div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section id="progressScreen" class="screen">
+        <div class="eyebrow">YOUR CONSISTENCY</div>
+        <h1>Progress</h1>
+        <p class="muted">Your completed sessions are saved on this phone's browser.</p>
+        <div class="grid2" style="margin-top:20px">
+            <div class="stat"><div class="label">TOTAL WORKOUTS</div><div class="value" id="progressWorkouts">0</div></div>
+            <div class="stat"><div class="label">TOTAL MINUTES</div><div class="value" id="progressMinutes">0</div></div>
+        </div>
+        <div class="section-heading"><h2>Workout history</h2></div>
+        <div class="card" id="historyList"></div>
+        <p class="notice" style="margin-top:15px">This version stores history locally. Clearing the browser's site data may erase it; it does not yet sync across devices.</p>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settingsScreen" class="screen">
+        <div class="eyebrow">PERSONALISE YOUR SESSION</div>
+        <h1>Settings</h1>
+        <p class="muted">Adjust the workout timer to suit your needs.</p>
+
+        <div class="card">
+            <h3>Rest between sets</h3>
+            <label class="field">
+                <span class="muted">Rest duration</span>
+                <select id="restSetting">
+                    <option value="30">30 seconds</option>
+                    <option value="45">45 seconds</option>
+                    <option value="60" selected>60 seconds</option>
+                    <option value="90">90 seconds</option>
+                    <option value="120">120 seconds</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span class="muted">Countdown sound</span>
+                <select id="soundSetting">
+                    <option value="on">On</option>
+                    <option value="off">Off</option>
+                </select>
+            </label>
+
+            <label class="field">
+                <span class="muted">Voice announcements</span>
+                <select id="voiceSetting">
+                    <option value="on">On</option>
+                    <option value="off">Off</option>
+                </select>
+            </label>
+            <button class="primary full" id="saveSettings">SAVE SETTINGS</button>
+        </div>
+
+        <div class="card">
+            <h3>Install on your phone</h3>
+            <p class="notice">Open this website in your phone's browser and use its Add to Home Screen option when available. Offline installation features will be added in a later step.</p>
+            <button class="secondary full" id="installBtn" hidden>INSTALL APP</button>
+        </div>
+
+        <div class="card">
+            <h3>Safety reminder</h3>
+            <p class="notice">Warm up before lifting. Use a weight you can control, keep the bench stable, and avoid holding your breath. If you develop chest pain, faintness or unusual breathlessness, stop and seek appropriate medical help.</p>
+        </div>
+    </section>
+</main>
+
+<nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-btn active" data-screen="homeScreen"><span class="icon">⌂</span>Home</button>
+    <button class="nav-btn" data-screen="workoutScreen"><span class="icon">◉</span>Workout</button>
+    <button class="nav-btn" data-screen="progressScreen"><span class="icon">▥</span>Progress</button>
+    <button class="nav-btn" data-screen="settingsScreen"><span class="icon">⚙</span>Settings</button>
+</nav>
+</div>
+
+<div id="toast" class="toast hidden" role="status"></div>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+const STORAGE = {
+    history: "pfa_history_v1",
+    settings: "pfa_settings_v1"
+};
+
+const weekPlan = [
+    ["Monday", "Chest + triceps"],
+    ["Tuesday", "Back + biceps"],
+    ["Wednesday", "Legs + core"],
+    ["Thursday", "Mobility + recovery"],
+    ["Friday", "Shoulders + arms"],
+    ["Saturday", "Full body"],
+    ["Sunday", "Rest day"]
+];
+
+const routines = {
+    "Monday": [
+        {name:"Warm-up", desc:"Prepare your body before pressing. March easily, circle the shoulders, practise wall push-ups and do light unloaded presses.", seconds:480, reps:"Warm-up movements", sets:1, emoji:"🚶"},
+        {name:"Dumbbell Bench Press", desc:"Lie on the bench with feet planted. Lower slowly to a comfortable chest level, then press smoothly. Keep wrists straight.", seconds:420, reps:"3 sets × 8–12 reps; rest 75–90 sec between sets", sets:1, emoji:"🏋️"},
+        {name:"Incline Dumbbell Press", desc:"Set the bench to a gentle incline. Keep shoulder blades supported and press without forcing the shoulders.", seconds:420, reps:"3 sets × 8–12 reps; rest 75–90 sec", sets:1, emoji:"💪"},
+        {name:"Dumbbell Chest Fly", desc:"Use light weights and soft elbows. Open only as far as comfortable, then bring the weights together above the chest.", seconds:360, reps:"2–3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"🏋️"},
+        {name:"Push-ups", desc:"Keep head, hips and heels aligned. Use hands on the bench if floor push-ups are too difficult.", seconds:360, reps:"3 sets × 8–12 reps; rest 60 sec", sets:1, emoji:"💪"},
+        {name:"Overhead Triceps Extension", desc:"Hold one dumbbell securely with both hands. Keep elbows comfortable and avoid arching your back.", seconds:360, reps:"3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"🏋️"},
+        {name:"Dumbbell Triceps Kickback", desc:"Hinge at the hips and support one hand on the bench. Keep upper arm still and straighten the elbow gently.", seconds:360, reps:"2–3 sets × 10–12 reps each arm; rest 45–60 sec", sets:1, emoji:"💪"},
+        {name:"Easy Cardio Finisher", desc:"Easy indoor march or step-touch. Keep a pace where conversation is possible; this is not an all-out effort.", seconds:240, reps:"Continuous easy movement", sets:1, emoji:"🚶"},
+        {name:"Low-impact conditioning / movement", desc:"Use an easy indoor march, gentle step-touch or relaxed walking. Keep the effort conversational; this is extra movement time, not a race.", seconds:360, reps:"6 minutes of easy movement", sets:1, emoji:"🚶"},
+        {name:"Cool-down", desc:"Walk slowly, then gently stretch chest, shoulders and triceps. Do not bounce or force a stretch.", seconds:240, reps:"Gentle stretches and relaxed breathing", sets:1, emoji:"🧘"},
+    ],
+    "Tuesday": [
+        {name:"Warm-up", desc:"Easy march, shoulder rolls, hip hinges and light practice rows without weight.", seconds:480, reps:"Warm-up movements", sets:1, emoji:"🚶"},
+        {name:"One-arm Dumbbell Row", desc:"Support one hand and knee on the bench. Pull toward the hip without twisting your torso.", seconds:420, reps:"3 sets × 10–12 reps each arm; rest 60–75 sec", sets:1, emoji:"🏋️"},
+        {name:"Bent-over Dumbbell Row", desc:"Hinge at the hips with a neutral back. Pull the dumbbells toward the waist without shrugging.", seconds:420, reps:"3 sets × 10–12 reps; rest 75 sec", sets:1, emoji:"🏋️"},
+        {name:"Dumbbell Pullover", desc:"Lie supported on the bench. Use a light dumbbell and move through a comfortable shoulder range.", seconds:360, reps:"2–3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"💪"},
+        {name:"Reverse Fly", desc:"Use light weights. Raise arms out to the sides with soft elbows and keep the neck relaxed.", seconds:360, reps:"3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"🏋️"},
+        {name:"Dumbbell Biceps Curl", desc:"Keep elbows close to your sides. Curl without swinging, then lower slowly.", seconds:360, reps:"3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"💪"},
+        {name:"Hammer Curl", desc:"Keep palms facing inward and wrists neutral. Avoid using momentum.", seconds:360, reps:"3 sets × 10–12 reps; rest 45–60 sec", sets:1, emoji:"🏋️"},
+        {name:"Easy Cardio Finisher", desc:"Comfortable indoor walk or march. Keep breathing steady and conversational.", seconds:240, reps:"Continuous easy movement", sets:1, emoji:"🚶"},
+        {name:"Low-impact conditioning / movement", desc:"Use an easy indoor march, gentle step-touch or relaxed walking. Keep the effort conversational; this is extra movement time, not a race.", seconds:360, reps:"6 minutes of easy movement", sets:1, emoji:"🚶"},
+        {name:"Cool-down", desc:"Gentle upper-back, biceps and chest stretches followed by relaxed breathing.", seconds:240, reps:"Gentle stretches", sets:1, emoji:"🧘"},
+    ],
+    "Wednesday": [
+        {name:"Warm-up", desc:"March gently, circle hips and ankles, practise bodyweight squats and reverse step-backs.", seconds:480, reps:"Warm-up movements", sets:1, emoji:"🚶"},
+        {name:"Goblet Squat", desc:"Hold one dumbbell close to the chest. Sit between the hips, keep heels down and knees aligned with toes.", seconds:420, reps:"3 sets × 10–12 reps; rest 75–90 sec", sets:1, emoji:"🏋️"},
+        {name:"Dumbbell Romanian Deadlift", desc:"Keep weights close to the legs. Push hips back with a soft knee bend and keep the back neutral.", seconds:420, reps:"3 sets × 10–12 reps; rest 75–90 sec", sets:1, emoji:"💪"},
+        {name:"Reverse Lunge", desc:"Step back and lower only as far as balance allows. Hold the bench lightly if needed.", seconds:360, reps:"2–3 sets × 8–10 reps each leg; rest 60–75 sec", sets:1, emoji:"🦵"},
+        {name:"Glute Bridge", desc:"Lie on the floor with feet planted. Lift hips by squeezing glutes; avoid over-arching the lower back.", seconds:360, reps:"3 sets × 12–15 reps; rest 60 sec", sets:1, emoji:"🧘"},
+        {name:"Supported Calf Raise", desc:"Hold a stable support. Rise slowly, pause briefly, then lower with control.", seconds:300, reps:"3 sets × 12–15 reps; rest 45–60 sec", sets:1, emoji:"🦵"},
+        {name:"Core: Dead Bug + Plank", desc:"Alternate controlled dead bugs and short planks. Keep the back comfortable and breathe normally.", seconds:300, reps:"2 rounds: 8 dead bugs each side + 20–35 sec plank", sets:1, emoji:"🧘"},
+        {name:"Easy Finisher", desc:"Easy march or gentle step-touch. Skip step-ups if balance or stability is uncertain.", seconds:240, reps:"Comfortable continuous movement", sets:1, emoji:"🚶"},
+        {name:"Low-impact conditioning / movement", desc:"Use an easy indoor march, gentle step-touch or relaxed walking. Keep the effort conversational; this is extra movement time, not a race.", seconds:480, reps:"8 minutes of easy movement", sets:1, emoji:"🚶"},
+        {name:"Cool-down", desc:"Gentle quadriceps, hamstring, calf and hip stretches. Stop at a mild stretch.", seconds:240, reps:"Gentle stretches", sets:1, emoji:"🧘"},
+    ],
+    "Thursday": [
+        {name:"Easy Warm-up", desc:"Start with a relaxed indoor walk or march and gentle shoulder movements.", seconds:300, reps:"Very easy movement", sets:1, emoji:"🚶"},
+        {name:"Comfortable Walk", desc:"Walk at a pace where you can talk easily. Keep this session light and refreshing.", seconds:900, reps:"15 minutes at an easy pace", sets:1, emoji:"🚶"},
+        {name:"Shoulder and Upper-back Mobility", desc:"Shoulder rolls, small arm circles and gentle wall slides.", seconds:300, reps:"Move slowly and comfortably", sets:1, emoji:"🧘"},
+        {name:"Spine and Hip Mobility", desc:"Gentle cat-cow movement and hip circles. Do not force the range.", seconds:300, reps:"6–8 slow repetitions each", sets:1, emoji:"🧘"},
+        {name:"Hip-flexor Stretch", desc:"Use a comfortable split stance and gently stretch the front of the hip. Repeat both sides.", seconds:300, reps:"2 gentle holds of 20–30 sec each side", sets:1, emoji:"🧘"},
+        {name:"Hamstring and Calf Stretch", desc:"Keep the back long and stretch gently. No bouncing or sharp pulling.", seconds:300, reps:"2 gentle holds each side", sets:1, emoji:"🧘"},
+        {name:"Chest and Lat Stretch", desc:"Use a gentle doorway chest stretch and an easy side reach.", seconds:300, reps:"2 comfortable holds each side", sets:1, emoji:"🧘"},
+        {name:"Relaxed Walk", desc:"Optional easy walking or relaxed movement. This should not feel like hard cardio.", seconds:600, reps:"10 minutes, conversational pace", sets:1, emoji:"🚶"},
+        {name:"Breathing and Cool-down", desc:"Slow down, relax the shoulders and breathe comfortably.", seconds:300, reps:"Gentle breathing and easy movement", sets:1, emoji:"🌿"},
+    ],
+    "Friday": [
+        {name:"Warm-up", desc:"Easy march, shoulder circles, wall slides and very light practice presses.", seconds:480, reps:"Warm-up movements", sets:1, emoji:"🚶"},
+        {name:"Seated Dumbbell Shoulder Press", desc:"Sit tall with back supported if possible. Press in a comfortable path without leaning backwards.", seconds:420, reps:"3 sets × 8–12 reps; rest 75–90 sec", sets:1, emoji:"🏋️"},
+        {name:"Dumbbell Lateral Raise", desc:"Use light weights and raise to about shoulder height with soft elbows. Avoid swinging.", seconds:360, reps:"3 sets × 10–12 reps; rest 45–60 sec", sets:1, emoji:"💪"},
+        {name:"Rear-delt Reverse Fly", desc:"Hinge at the hips or lie chest-down on a low incline bench. Keep the neck relaxed.", seconds:360, reps:"2–3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"🏋️"},
+        {name:"Alternating Biceps Curl", desc:"Curl one arm at a time. Keep upper arms still and torso steady.", seconds:360, reps:"3 sets × 10 reps each arm; rest 60 sec", sets:1, emoji:"💪"},
+        {name:"Overhead Triceps Extension", desc:"Hold one dumbbell securely with both hands. Keep ribs down and elbows comfortable.", seconds:360, reps:"3 sets × 10–12 reps; rest 60 sec", sets:1, emoji:"🏋️"},
+        {name:"Hammer Curl", desc:"Keep palms facing inward, wrists straight and body still.", seconds:360, reps:"2–3 sets × 10–12 reps; rest 45–60 sec", sets:1, emoji:"💪"},
+        {name:"Farmer Carry", desc:"Hold dumbbells at your sides, stand tall and walk slowly with controlled steps.", seconds:300, reps:"3 carries × 30–45 sec; rest 45–60 sec", sets:1, emoji:"🏋️"},
+        {name:"Low-impact conditioning / movement", desc:"Use an easy indoor march, gentle step-touch or relaxed walking. Keep the effort conversational; this is extra movement time, not a race.", seconds:360, reps:"6 minutes of easy movement", sets:1, emoji:"🚶"},
+        {name:"Cool-down", desc:"Gentle shoulder, biceps and triceps stretches. Finish with relaxed breathing.", seconds:240, reps:"Gentle stretches", sets:1, emoji:"🧘"},
+    ],
+    "Saturday": [
+        {name:"Warm-up", desc:"March, arm circles, hip hinges, bodyweight squats and easy push-ups against the bench.", seconds:480, reps:"Warm-up movements", sets:1, emoji:"🚶"},
+        {name:"Dumbbell Squat", desc:"Hold dumbbells at your sides or one at the chest. Sit back and down with control.", seconds:360, reps:"3 sets × 10 reps; rest 75 sec", sets:1, emoji:"🏋️"},
+        {name:"Dumbbell Bench Press", desc:"Keep feet stable, wrists stacked and shoulder blades supported. Use a manageable load.", seconds:360, reps:"3 sets × 8–12 reps; rest 75 sec", sets:1, emoji:"🏋️"},
+        {name:"One-arm Dumbbell Row", desc:"Support yourself on the bench and pull toward the hip without twisting.", seconds:360, reps:"3 sets × 10 reps each arm; rest 60 sec", sets:1, emoji:"💪"},
+        {name:"Romanian Deadlift", desc:"Push hips back, keep a soft knee bend and weights close to legs.", seconds:360, reps:"2–3 sets × 10 reps; rest 75 sec", sets:1, emoji:"🏋️"},
+        {name:"Standing Shoulder Press", desc:"Brace gently and press without leaning backwards. Use a manageable weight.", seconds:300, reps:"2 sets × 10 reps; rest 60 sec", sets:1, emoji:"💪"},
+        {name:"Glute Bridge", desc:"Lift hips by squeezing glutes. Keep the movement controlled and comfortable.", seconds:300, reps:"2–3 sets × 12–15 reps; rest 60 sec", sets:1, emoji:"🧘"},
+        {name:"Core + Easy Finisher", desc:"Alternate dead bugs with easy marching. Keep effort moderate and breathing steady.", seconds:360, reps:"2 rounds: 8 dead bugs each side + 2 min easy march", sets:1, emoji:"🚶"},
+        {name:"Low-impact conditioning / movement", desc:"Use an easy indoor march, gentle step-touch or relaxed walking. Keep the effort conversational; this is extra movement time, not a race.", seconds:360, reps:"6 minutes of easy movement", sets:1, emoji:"🚶"},
+        {name:"Cool-down", desc:"Gentle full-body stretches and relaxed breathing.", seconds:360, reps:"Gentle stretches", sets:1, emoji:"🧘"},
+    ],
+};
+
+const defaultSettings = {rest:60, sound:"on", voice:"on"};
+let settings = loadJSON(STORAGE.settings, defaultSettings);
+let history = loadJSON(STORAGE.history, []);
+let currentRoutine = [];
+let routineDay = "";
+let index = 0;
+let setNumber = 1;
+let secondsLeft = 0;
+let phase = "exercise";
+let timerId = null;
+let endTimestamp = 0;
+let paused = false;
+let sessionStarted = 0;
+let sessionPausedTotal = 0;
+let pauseStartedAt = 0;
+let completedExerciseSeconds = 0;
+let deferredInstallPrompt = null;
+let wakeLock = null;
+
+function loadJSON(key, fallback) {
+    try {
+        const value = JSON.parse(localStorage.getItem(key));
+        return value ?? fallback;
+    } catch {
+        return fallback;
+    }
+}
+function saveJSON(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
+function localDayName() {
+    return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+}
+function displayDayName(day) {
+    return day === "Sunday" ? "Rest Day" : day;
+}
+function showToast(message) {
+    const toast = $("toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    clearTimeout(showToast.timeout);
+    showToast.timeout = setTimeout(() => toast.classList.add("hidden"), 2500);
+}
+function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(el => el.classList.toggle("active", el.id === id));
+    document.querySelectorAll(".nav-btn").forEach(el => el.classList.toggle("active", el.dataset.screen === id));
+    if (id === "progressScreen") renderHistory();
+    if (id === "homeScreen") renderDashboard();
+    window.scrollTo({top:0, behavior:"auto"});
+}
+function renderWeeklyPlan() {
+    const today = localDayName();
+    $("weeklyPlan").innerHTML = weekPlan.map(([day, workout]) => `
+        <div class="day-row">
+            <div>
+                <div class="day-name">${day}${day === today ? " · TODAY" : ""}</div>
+                <div class="day-detail">${workout}</div>
+            </div>
+            <span class="pill">${day === "Sunday" ? "REST" : (day === today ? "TODAY" : "PLAN")}</span>
+        </div>`).join("");
+}
+function renderDashboard() {
+    const total = history.length;
+    const minutes = history.reduce((sum, item) => sum + (item.minutes || 0), 0);
+    $("homeWorkouts").textContent = total;
+    $("homeMinutes").textContent = `${minutes} min`;
+    $("progressWorkouts").textContent = total;
+    $("progressMinutes").textContent = minutes;
+    renderWeeklyPlan();
+}
+function renderHistory() {
+    const list = $("historyList");
+    if (!history.length) {
+        list.innerHTML = '<div class="empty">No completed workouts yet.<br>Start your first session when you are ready.</div>';
+        return;
+    }
+    list.innerHTML = history.slice().reverse().slice(0,30).map(item => `
+        <div class="history-row">
+            <div>
+                <strong>${escapeHTML(item.day || "Workout")}</strong>
+                <div class="day-detail">${escapeHTML(item.date || "")}</div>
+            </div>
+            <span class="pill">${Number(item.minutes) || 0} min</span>
+        </div>`).join("");
+}
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+}
+function startWorkout() {
+    routineDay = localDayName();
+    if (routineDay === "Sunday") {
+        showToast("Sunday is your full rest day. Enjoy recovery; your next planned session is Monday.");
+        return;
+    }
+    currentRoutine = (routines[routineDay] || routines.Saturday).map(item => ({...item}));
+    $("workoutDayLabel").textContent = routineDay.toUpperCase();
+    $("workoutHeading").textContent = routineDay === "Thursday" ? "Mobility & Recovery" : `${routineDay} Workout`;
+    $("introCount").textContent = currentRoutine.length;
+    $("introDuration").textContent = "60 minutes (guided schedule)";
+    $("workoutIntro").classList.remove("hidden");
+    $("liveWorkout").classList.add("hidden");
+    $("workoutComplete").classList.add("hidden");
+    showScreen("workoutScreen");
+}
+function beginSession() {
+    index = 0;
+    setNumber = 1;
+    phase = "exercise";
+    paused = false;
+    sessionStarted = Date.now();
+    sessionPausedTotal = 0;
+    pauseStartedAt = 0;
+    completedExerciseSeconds = 0;
+    $("workoutIntro").classList.add("hidden");
+    $("workoutComplete").classList.add("hidden");
+    $("liveWorkout").classList.remove("hidden");
+    $("pauseBtn").style.display = "";
+    $("resumeBtn").style.display = "none";
+    renderExercise();
+    requestWakeLock();
+}
+function currentExercise() {
+    return currentRoutine[index];
+}
+function renderVisual(item) {
+    const visual = $("exerciseVisual");
+    visual.innerHTML = `<div class="visual-fallback">${item.emoji || "🏋️"}<small>Follow the movement instructions below. Keep every repetition controlled.</small></div>`;
+}
+function renderExercise() {
+    if (index >= currentRoutine.length) {
+        finishSession();
+        return;
+    }
+    const item = currentExercise();
+    phase = "exercise";
+    secondsLeft = item.seconds;
+    $("exerciseCounter").textContent = `WORKOUT BLOCK ${index + 1} OF ${currentRoutine.length}`;
+    $("exerciseProgress").style.width = `${index / currentRoutine.length * 100}%`;
+    $("exerciseName").textContent = item.name;
+    $("exerciseDescription").textContent = item.desc;
+    $("exerciseSets").textContent = item.sets > 1 ? `Set ${setNumber} of ${item.sets}` : "Single interval";
+    $("exerciseReps").textContent = item.reps;
+    $("timerLabel").textContent = "BLOCK TIME REMAINING";
+    renderVisual(item);
+    updateTimerDisplay();
+    updateSessionClock();
+    const next = index + 1 < currentRoutine.length ? currentRoutine[index+1].name : "Workout complete";
+    $("nextExerciseInfo").textContent = `Next: ${next}`;
+    startClock();
+    announce(item.name);
+}
+function updateSessionClock() {
+    if (!sessionStarted) return;
+    const now = Date.now();
+    const pausedMs = sessionPausedTotal + (paused && pauseStartedAt ? now - pauseStartedAt : 0);
+    const elapsed = Math.max(0, Math.floor((now - sessionStarted - pausedMs) / 1000));
+    const target = 60 * 60;
+    const remaining = Math.max(0, target - elapsed);
+    const fmt = value => {
+        const m = Math.floor(value / 60);
+        const s = value % 60;
+        return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    };
+    if ($("sessionElapsed")) $("sessionElapsed").textContent = fmt(elapsed);
+    if ($("sessionRemaining")) $("sessionRemaining").textContent = fmt(remaining);
+}
+function updateTimerDisplay() {
+    const mins = Math.floor(Math.max(0, secondsLeft) / 60);
+    const secs = Math.max(0, secondsLeft) % 60;
+    $("timerDisplay").textContent = `${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+    const total = phase === "rest" ? Number(settings.rest) : (currentExercise()?.seconds || 1);
+    $("timeProgress").style.width = `${Math.max(0, Math.min(100, (1 - secondsLeft / Math.max(1,total)) * 100))}%`;
+}
+function startClock() {
+    clearInterval(timerId);
+    if (paused) return;
+    endTimestamp = Date.now() + secondsLeft * 1000;
+    timerId = setInterval(tick, 200);
+}
+function tick() {
+    if (paused) return;
+    secondsLeft = Math.max(0, Math.ceil((endTimestamp - Date.now()) / 1000));
+    updateTimerDisplay();
+    updateSessionClock();
+    if (secondsLeft <= 0) {
+        clearInterval(timerId);
+        handlePhaseEnd();
+    }
+}
+function handlePhaseEnd() {
+    if (phase === "rest") {
+        renderExercise();
+        return;
+    }
+    completedExerciseSeconds += currentExercise().seconds;
+    beep();
+    const item = currentExercise();
+    if (setNumber < item.sets) {
+        setNumber++;
+        phase = "rest";
+        secondsLeft = Number(settings.rest);
+        $("exerciseName").textContent = "Rest & Recover";
+        $("exerciseDescription").textContent = "Relax, breathe normally and prepare for the next set.";
+        $("exerciseSets").textContent = `Next: Set ${setNumber} of ${item.sets}`;
+        $("exerciseReps").textContent = "Rest period";
+        $("timerLabel").textContent = "REST TIME";
+        $("exerciseVisual").innerHTML = '<div class="visual-fallback">💧<small>Take a break and drink water if needed.</small></div>';
+        $("nextExerciseInfo").textContent = `Next: ${item.name}`;
+        updateTimerDisplay();
+        announce("Rest time");
+        startClock();
+        return;
+    }
+    setNumber = 1;
+    index++;
+    if (index >= currentRoutine.length) {
+        finishSession();
+        return;
+    }
+    phase = "transition";
+    secondsLeft = 3;
+    $("exerciseName").textContent = "Get ready!";
+    $("exerciseDescription").textContent = "Next exercise coming up.";
+    $("exerciseSets").textContent = "Transition";
+    $("exerciseReps").textContent = "3-second countdown";
+    $("timerLabel").textContent = "NEXT EXERCISE";
+    $("exerciseVisual").innerHTML = '<div class="visual-fallback">➡️<small>Prepare safely before starting.</small></div>';
+    $("nextExerciseInfo").textContent = `Next: ${currentExercise().name}`;
+    updateTimerDisplay();
+    announce("Next exercise");
+    startClock();
+    const originalHandler = handlePhaseEnd;
+    // The transition is handled in the next tick via phase check.
+}
+function finishSession() {
+    clearInterval(timerId);
+    paused = false;
+    releaseWakeLock();
+    if (!sessionStarted) return;
+    const activeElapsedMs = Math.max(0, Date.now() - sessionStarted - sessionPausedTotal - (paused && pauseStartedAt ? Date.now() - pauseStartedAt : 0));
+    const elapsedMinutes = Math.max(1, Math.round(activeElapsedMs / 60000));
+    history.push({
+        date: new Date().toLocaleString(),
+        day: routineDay,
+        minutes: elapsedMinutes
+    });
+    saveJSON(STORAGE.history, history);
+    sessionStarted = 0;
+    $("liveWorkout").classList.add("hidden");
+    $("workoutIntro").classList.add("hidden");
+    $("workoutComplete").classList.remove("hidden");
+    $("completeSummary").textContent = `Well done, Nuwan! You completed your ${routineDay} guided session in about ${elapsedMinutes} minutes.`;
+    renderDashboard();
+    showToast("Workout saved on this phone.");
+}
+function pauseSession() {
+    if (paused) return;
+    paused = true;
+    pauseStartedAt = Date.now();
+    clearInterval(timerId);
+    $("pauseBtn").style.display = "none";
+    $("resumeBtn").style.display = "";
+    releaseWakeLock();
+}
+function resumeSession() {
+    if (!paused) return;
+    if (pauseStartedAt) sessionPausedTotal += Date.now() - pauseStartedAt;
+    pauseStartedAt = 0;
+    paused = false;
+    $("pauseBtn").style.display = "";
+    $("resumeBtn").style.display = "none";
+    requestWakeLock();
+    startClock();
+}
+function skipExercise() {
+    if (phase === "exercise" && currentExercise()) completedExerciseSeconds += Math.max(0, currentExercise().seconds - secondsLeft);
+    clearInterval(timerId);
+    index++;
+    setNumber = 1;
+    if (index >= currentRoutine.length) {
+        finishSession();
+    } else {
+        phase = "transition";
+        secondsLeft = 3;
+        $("exerciseName").textContent = "Get ready!";
+        $("exerciseDescription").textContent = "Preparing the next exercise.";
+        $("exerciseSets").textContent = "Transition";
+        $("exerciseReps").textContent = "3-second countdown";
+        $("timerLabel").textContent = "NEXT EXERCISE";
+        $("exerciseVisual").innerHTML = '<div class="visual-fallback">➡️<small>Prepare safely before starting.</small></div>';
+        $("nextExerciseInfo").textContent = `Next: ${currentExercise().name}`;
+        updateTimerDisplay();
+        startClock();
+    }
+}
+function endSession() {
+    if (!sessionStarted) {
+        showScreen("homeScreen");
+        return;
+    }
+    if (!confirm("End this workout now? It will not be saved as a completed workout.")) return;
+    clearInterval(timerId);
+    sessionStarted = 0;
+    paused = false;
+    releaseWakeLock();
+    $("liveWorkout").classList.add("hidden");
+    $("workoutIntro").classList.remove("hidden");
+}
+function beep() {
+    if (settings.sound !== "on") return;
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.frequency.value = 660;
+        gain.gain.value = 0.06;
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.15);
+        oscillator.onended = () => ctx.close();
+    } catch {}
+}
+function announce(text) {
+    if (settings.voice !== "on" || !("speechSynthesis" in window)) return;
+    try {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.rate = 0.9;
+        msg.lang = "en-US";
+        speechSynthesis.speak(msg);
+    } catch {}
+}
+async function requestWakeLock() {
+    if (!("wakeLock" in navigator)) return;
+    try { wakeLock = await navigator.wakeLock.request("screen"); } catch {}
+}
+function releaseWakeLock() {
+    if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+    }
+}
+function saveAppSettings() {
+    settings = {
+        rest: Number($("restSetting").value),
+        sound: $("soundSetting").value,
+        voice: $("voiceSetting").value
+    };
+    saveJSON(STORAGE.settings, settings);
+    showToast("Settings saved.");
+}
+function loadAppSettings() {
+    $("restSetting").value = String(settings.rest ?? 60);
+    $("soundSetting").value = settings.sound || "on";
+    $("voiceSetting").value = settings.voice || "on";
+}
+
+/* Event handlers */
+document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        if (btn.dataset.screen === "workoutScreen" && sessionStarted) {
+            showScreen("workoutScreen");
+            return;
+        }
+        showScreen(btn.dataset.screen);
+    });
+});
+$("homeStart").addEventListener("click", startWorkout);
+$("workoutBack").addEventListener("click", () => showScreen("homeScreen"));
+$("beginSession").addEventListener("click", beginSession);
+$("pauseBtn").addEventListener("click", pauseSession);
+$("resumeBtn").addEventListener("click", resumeSession);
+$("skipBtn").addEventListener("click", skipExercise);
+$("endWorkout").addEventListener("click", endSession);
+$("finishToHome").addEventListener("click", () => showScreen("homeScreen"));
+$("saveSettings").addEventListener("click", saveAppSettings);
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && sessionStarted && !paused) requestWakeLock();
+});
+
+/* Transition-aware clock handler */
+const phaseEndHandler = handlePhaseEnd;
+handlePhaseEnd = function() {
+    if (phase === "transition") {
+        renderExercise();
+        return;
+    }
+    phaseEndHandler();
+};
+
+window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    $("installBtn").hidden = false;
+});
+$("installBtn").addEventListener("click", async () => {
+    if (!deferredInstallPrompt) {
+        showToast("Use your browser menu to add this site to the home screen.");
+        return;
+    }
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    $("installBtn").hidden = true;
+});
+
+loadAppSettings();
+renderDashboard();
+</script>
+</body>
+</html>
